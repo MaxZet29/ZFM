@@ -1,0 +1,56 @@
+#include "Header.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <curses.h>
+
+
+void window1(int argc, char** argv) {
+
+	//Štart curses
+	initscr();
+	cbreak();
+	raw();
+	noecho();
+	//Inicializácia obrazovky
+	//Nastavenie pamäte a vyčistenie obrazovky
+	int height, width, start_y, start_x;
+	height = 25;
+	width = 55;
+	start_x = start_y = 2;
+
+	WINDOW* win = newwin(height, width, start_y, start_x);
+	WINDOW* win2 = newwin(height, width, start_y, 57);
+
+	refresh();
+
+
+	box(win, 0, 0);
+	box(win2, 0, 0);
+
+	mvwprintw(win, 0, 3, "E:/PROJEKT/MENU_B_2");
+	mvwprintw(win2, 0, 3, "C:/Program Files/Adobe");
+
+	wrefresh(win);
+	wrefresh(win2);
+	keypad(win, true);
+	keypad(win2, true);
+	//Vstup používateľa, vráti hodnotu int danej klávesy
+
+	int c = getch();
+
+	endwin();
+
+
+	//Prebehne dealokácia pamäte a ukončenie curses
+}
+
+void menu() {
+
+}
+
+
+int main(int argc, char** argv) {
+	window1(argc, argv);
+	menu();
+	return 0;
+}

@@ -1,0 +1,36 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <conio.h>
+#include <windows.h>
+
+int seznam(void)
+{
+    char List[50][256]{};
+    DIR* dir;
+    int i = 0, k;
+    struct dirent* ent;
+    dir = opendir("./");
+    if (dir != NULL)
+    {
+        //tisk vsech souboru a slozek
+        while ((ent = readdir(dir)) != NULL)
+        {
+            strcpy(List[i], ent->d_name);
+            i++;
+            //ulozeni souboru do arraye
+        }
+        closedir(dir);
+    }
+    else
+    {
+        //adresar nelze otevrit
+        perror("");
+    }
+    for (k = 0;(k < (i + 1)) && (k < 50);k++) printf("%s\n", List[k]);
+    //tisk seznamu souboru
+    return 0;
+}

@@ -1,0 +1,83 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <conio.h>
+#include <windows.h>
+
+#include <curses.h>
+
+int main()
+{
+	char list[70][70]{};
+	DIR* dir;
+	int i = 0, k;
+	struct dirent* ent;
+	dir = opendir("C://FEKT");
+	if (dir != NULL)
+	{
+		// tisk vsech souboru a slozek
+		while ((ent = readdir(dir)) != NULL)
+		{
+			strcpy(list[i], ent->d_name);
+			i++;
+			// ulozeni souboru do arraye
+		}
+		closedir(dir);
+	}
+	else
+	{
+		// adresar nelze otevrit
+		perror("");
+	}
+
+
+	WINDOW* w;
+	char item[7];
+	int ch, width = 7;
+	initscr(); // inicializace ncurses
+	w = newwin(22, 40, 1, 1); // nove okno
+	box(w, 0, 0); // hranice okna
+	// tisk vsech moznosti a oznaceni prvni moznosti
+	for (i = 0; i < 20; i++) {
+		if (i == 0)
+			wattron(w, A_STANDOUT); // oznaceni prvni moznosti
+		else
+			wattroff(w, A_STANDOUT);
+		sprintf(item, "%-7s", list[i]);
+		mvwprintw(w, i + 1, 2, "%s", item);
+	}
+	wrefresh(w); // update obrazu
+	i = 0;
+	noecho(); // input se nezobrazuje
+	keypad(w, TRUE); // povoleni inputu
+	curs_set(0); // odstraneni kurzoru
+	// ziskani inputu
+	while ((ch = wgetch(w)) != 'q') {
+		// nastaveni stejne sirky polozek
+		sprintf(item, "%-7s", list[i]);
+		mvwprintw(w, i + 1, 2, "%s", item);
+		// snizeni nebo zvyseni hodnoty podle inputu
+		switch (ch) {
+		case KEY_UP:
+			i--;
+			i = (i < 0) ? 19 : i;
+			break;
+		case KEY_DOWN:
+			i++;
+			i = (i > 19) ? 0 : i;
+			break;
+		}
+		// oznaceni dalsi moznosti v menu
+		wattron(w, A_STANDOUT);
+		sprintf(item, "%-7s", list[i]);
+		mvwprintw(w, i + 1, 2, "%s", item);
+		wattroff(w, A_STANDOUT);
+	}
+	delwin(w);
+	endwin();
+
+	return 0;
+}

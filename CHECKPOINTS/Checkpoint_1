@@ -1,0 +1,185 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <conio.h>
+#include <windows.h>
+#include <curses.h>
+
+char path[] = "C://";
+
+int main()
+{
+    char list[70][70]{};
+
+    DIR* dir;
+
+    int i = 0, k;
+
+    struct dirent* ent;
+
+    dir = opendir(path);
+
+    if (dir != NULL)
+    {
+        // tisk vsech souboru a slozek
+
+        while ((ent = readdir(dir)) != NULL)
+        {
+            strcpy(list[i], ent->d_name);
+            i++;
+
+            // ulozeni souboru do arraye
+        }
+        closedir(dir);
+    }
+    else
+    {
+        // adresar nelze otevrit
+
+        perror("");
+    }
+
+
+
+    WINDOW* w;
+    WINDOW* w2;
+
+    char item[7];
+
+    int ch, width = 7;
+
+    initscr(); // inicializace ncurses
+
+    w = newwin(25, 40, 1, 1); // nove okno
+    w2 = newwin(25, 40, 1, 41); // nove okno2
+
+    box(w, 0, 0); // hranice okna
+    box(w2, 0, 0); // hranice okna2
+
+    mvwprintw(w, 0, 2, "%s",path); // vypis cesty 
+    mvwprintw(w2, 0, 2, "%s",path); // vypis cesty2
+
+    // tisk vsech moznosti a oznaceni prvni moznosti
+
+    for (i = 0; i < 20; i++)
+    {
+        if (i == 0)
+            wattron(w, A_STANDOUT); // oznaceni prvni moznosti
+
+        else
+            wattroff(w, A_STANDOUT);
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w, i + 1, 2, "%s", item);
+    }
+
+    // tisk vsech moznosti a oznaceni prvni moznosti
+
+    for (i = 0; i < 20; i++)
+    {
+        if (i == 0)
+            wattron(w2, A_STANDOUT); // oznaceni prvni moznosti
+
+        else
+            wattroff(w2, A_STANDOUT);
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w2, i + 1, 2, "%s", item);
+    }
+
+    wrefresh(w); // update obrazu
+    wrefresh(w2); // update obrazu
+
+    i = 0;
+
+    noecho(); // input se nezobrazuje
+    keypad(w, TRUE); // povoleni inputu
+    keypad(w2, TRUE);
+    curs_set(0); // odstraneni kurzoru
+
+    OKNO1:
+        while ((ch = wgetch(w)) != 'q')
+        {
+
+            // nastaveni stejne sirky polozek
+
+            sprintf(item, "%-7s", list[i]);
+            mvwprintw(w, i + 1, 2, "%s", item);
+
+            // snizeni nebo zvyseni hodnoty podle inputu
+
+            switch (ch) {
+            case KEY_UP:
+                i--;
+                i = (i < 0) ? 19 : i;
+                break;
+            case KEY_DOWN:
+                i++;
+                i = (i > 19) ? 0 : i;
+                break;
+            case VK_SPACE:
+                break;
+            case VK_TAB:
+                goto OKNO2;
+                break;
+            case VK_ESCAPE:
+                exit(1);
+                break;
+            default:
+                break;
+            }
+
+            // oznaceni dalsi moznosti v menu
+
+            wattron(w, A_STANDOUT);
+            sprintf(item, "%-7s", list[i]);
+            mvwprintw(w, i + 1, 2, "%s", item);
+            wattroff(w, A_STANDOUT);
+        }
+
+    OKNO2:
+        while ((ch = wgetch(w2)) != 'q')
+        {
+
+            // nastaveni stejne sirky polozek
+
+            sprintf(item, "%-7s", list[i]);
+            mvwprintw(w2, i + 1, 2, "%s", item);
+
+            // snizeni nebo zvyseni hodnoty podle inputu
+
+            switch (ch) {
+            case KEY_UP:
+                i--;
+                i = (i < 0) ? 19 : i;
+                break;
+            case KEY_DOWN:
+                i++;
+                i = (i > 19) ? 0 : i;
+                break;
+            case VK_SPACE:
+                break;
+            case VK_TAB:
+                goto OKNO1;
+                break;
+            case VK_ESCAPE:
+                exit(1);
+                break;
+            default:
+                break;
+            }
+
+            // oznaceni dalsi moznosti v menu
+
+            wattron(w2, A_STANDOUT);
+            sprintf(item, "%-7s", list[i]);
+            mvwprintw(w2, i + 1, 2, "%s", item);
+            wattroff(w2, A_STANDOUT);
+        }
+
+    delwin(w);
+    delwin(w2);
+    endwin();
+    return 0;
+}

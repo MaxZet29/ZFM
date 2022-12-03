@@ -1,0 +1,301 @@
+#define _CRT_SECURE_NO_WARNINGS
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <conio.h>
+#include <string>
+#include <Windows.h>
+#include <curses.h>
+
+
+char  path[1000];
+
+
+
+
+int main()
+{
+   
+    char list[70][70]{};
+
+    DIR* dir;
+
+    int i = 0, k;
+
+    struct dirent* ent;
+
+    dir = opendir(path);
+
+    if (dir != NULL)
+    {
+        // tisk vsech souboru a slozek
+
+        while ((ent = readdir(dir)) != NULL)
+        {
+            strcpy(list[i], ent->d_name);
+            i++;
+
+            // ulozeni souboru do arraye
+        }
+        closedir(dir);
+    }
+    else
+    {
+        // adresar nelze otevrit
+
+        perror("");
+    }
+
+
+    WINDOW* w;
+    WINDOW* w2;
+    WINDOW* w3;
+
+    char item[7];
+
+    char listM[6][7] = { "CREATE", "RENAME", "MOVE", "COPY", "DELETE", "EXIT" };
+    char itemM[7];
+
+    int ch, width = 7;
+
+    initscr(); // inicializace ncurses
+
+    w = newwin(22, 40, 0, 1); // nove okno
+    w2 = newwin(22, 40, 0, 41); // nove okno2
+    w3 = newwin(8, 12, 22, 35);
+
+    box(w, 0, 0); // hranice okna
+    box(w2, 0, 0); // hranice okna2
+    box(w3, 0, 0); // hranice okna3
+
+    mvwprintw(w, 0, 1, "%s", path); // vypis cesty 
+    mvwprintw(w2, 0, 1, "%s", path); // vypis cesty2
+
+    // tisk vsech moznosti a oznaceni prvni moznosti
+
+    for (i = 0; i < 20; i++)
+    {
+        if (i == 0)
+            wattron(w, A_STANDOUT); // oznaceni prvni moznosti
+
+        else
+            wattroff(w, A_STANDOUT);
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w, i + 1, 2, "%s", item);
+    }
+
+    // tisk vsech moznosti a oznaceni prvni moznosti
+
+    for (i = 0; i < 20; i++)
+    {
+        if (i == 0)
+            wattron(w2, A_STANDOUT); // oznaceni prvni moznosti
+
+        else
+            wattroff(w2, A_STANDOUT);
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w2, i + 1, 2, "%s", item);
+    }
+
+    // tisk vsech moznosti a oznaceni prvni moznosti
+
+    for (i = 0; i < 6; i++) {
+        if (i == 0)
+            wattron(w3, A_STANDOUT);
+        else
+            wattroff(w3, A_STANDOUT);
+        sprintf(itemM, "%-7s", listM[i]);
+        mvwprintw(w3, i + 1, 2, "%s", itemM);
+    }
+
+    wrefresh(w); // update obrazu
+    wrefresh(w2); // update obrazu
+    wrefresh(w3); // update obrazu
+
+    i = 0;
+
+    noecho(); // input se nezobrazuje
+    keypad(w, TRUE); // povoleni inputu
+    keypad(w2, TRUE);
+    keypad(w3, TRUE);
+    curs_set(0); // odstraneni kurzoru
+
+OKNO1:
+    while ((ch = wgetch(w)) != 'q')
+    {
+
+        // nastaveni stejne sirky polozek
+
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w, i + 1, 2, "%s", item);
+
+        // snizeni nebo zvyseni hodnoty podle inputu
+
+        switch (ch) {
+        case'a':
+                endwin();
+                printf("Zadaj cestu\n");
+                scanf("%s", &path);
+                doupdate();
+                initscr();
+            break;
+        case KEY_UP:
+            i--;
+            i = (i < 0) ? 19 : i;
+            break;
+        case KEY_DOWN:
+            i++;
+            i = (i > 19) ? 0 : i;
+            break;
+        case VK_SPACE:
+            break;
+        case VK_TAB:
+            goto OKNO2;
+            break;
+        case '\n':
+            break;
+        case  'm':
+            goto OKNO3;
+            break;
+        default:
+            break;
+        }
+
+        // oznaceni dalsi moznosti v menu
+
+        wattron(w, A_STANDOUT);
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w, i + 1, 2, "%s", item);
+        wattroff(w, A_STANDOUT);
+    }
+
+OKNO2:
+    while ((ch = wgetch(w2)) != 'q')
+    {
+
+        // nastaveni stejne sirky polozek
+
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w2, i + 1, 2, "%s", item);
+
+        // snizeni nebo zvyseni hodnoty podle inputu
+
+        switch (ch) {
+        case KEY_UP:
+            i--;
+            i = (i < 0) ? 19 : i;
+            break;
+        case KEY_DOWN:
+            i++;
+            i = (i > 19) ? 0 : i;
+            break;
+        case VK_SPACE:
+            break;
+        case VK_TAB:
+            goto OKNO1;
+            break;
+        case '\n':
+            break;
+        case  'm':
+            goto OKNO3;
+            break;
+        default:
+            break;
+        }
+
+        // oznaceni dalsi moznosti v menu
+
+        wattron(w2, A_STANDOUT);
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w2, i + 1, 2, "%s", item);
+        wattroff(w2, A_STANDOUT);
+    }
+
+
+OKNO3:
+    while ((ch = wgetch(w3)) != 'q') {
+        sprintf(itemM, "%-7s", listM[i]);
+        mvwprintw(w3, i + 1, 2, "%s", itemM);
+        switch (ch) {
+        case 'a':
+            goto OKNO1;
+            break;
+        case 'b':
+            goto OKNO2;
+            break;
+        case KEY_UP:
+            i--;
+            i = (i < 0) ? 4 : i;
+            break;
+        case KEY_DOWN:
+            i++;
+            i = (i > 5) ? 0 : i;
+            break;
+        case '\n':
+            if (i == 0)
+            {
+                FILE* fh_output;
+                fh_output = fopen("C://FEKT/1/1.txt", "w");
+                fprintf(fh_output, "TEXT SUBORU, CISLO: %d\n", 6);
+                fclose(fh_output);
+            }
+            if (i == 1)
+            {
+                char file[100] = "C://FEKT/1/1.txt";
+                char nove[100] = "C://FEKT/1/NEwfile.txt";
+                rename(file, nove);
+            }
+            if (i == 2)
+            {
+
+            }
+            if (i == 3)
+            {
+                char source_file[100] = "C://FEKT/2/A.txt";
+                char target_file[100] = "C://FEKT/2/AB1.txt";
+                char c;
+                FILE* source, * target;
+
+
+                source = fopen(source_file, "r");
+                target = fopen(target_file, "w");
+
+                while ((c = fgetc(source)) != EOF)
+                    fputc(c, target);
+
+
+                fclose(source);
+                fclose(target);
+            }
+            if (i == 4)
+            {
+                char file[100] = "C://FEKT/1/1.txt";
+
+                if (remove(file) != 0)
+                {
+                    fprintf(stderr, "Errno: %d\n", errno);
+                    perror("Error msg");
+                }
+            }
+            if (i == 5)
+            {
+                exit(0);
+            }
+            break;
+        }
+        wattron(w3, A_STANDOUT);
+        sprintf(itemM, "%-7s", listM[i]);
+        mvwprintw(w3, i + 1, 2, "%s", itemM);
+        wattroff(w3, A_STANDOUT);
+    }
+
+
+
+    delwin(w);
+    delwin(w2);
+    delwin(w3);
+    endwin();
+    return 0;
+}

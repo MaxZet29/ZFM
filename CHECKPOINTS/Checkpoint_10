@@ -1,0 +1,784 @@
+#define _CRT_SECURE_NO_WARNINGS 
+#include <stdlib.h>
+#include <stdio.h>
+#include <dirent.h>
+#include <string.h>
+#include <conio.h>
+#include <string>
+#include <Windows.h>
+#include <curses.h>
+
+int create();
+int rename();
+int mov();
+int copy();
+int del();
+int create2();
+int rename2();
+int mov2();
+int copy2();
+int del2();
+
+char  cesta[100];
+char  cesta2[100];
+char* path = cesta;
+char* path2 = cesta2;
+
+//copy, move
+char kamtobude[100];
+
+//ren
+char novejmeno[100];
+
+//create
+char novysoubor[100];
+
+
+int selected[70] = { 0 };
+int selected2[70] = { 0 };
+char list[70][70]{};
+char list2[70][70]{};
+
+int main()
+{
+ZACATEK:
+
+
+    DIR* dir;
+
+    int i = 0, k;
+
+    struct dirent* ent;
+
+    dir = opendir(path);
+
+    if (dir != NULL)
+    {
+        // tisk vsech souboru a slozek
+
+        while ((ent = readdir(dir)) != NULL)
+        {
+            strcpy(list[i], ent->d_name);
+            i++;
+
+            // ulozeni souboru do arraye
+        }
+        closedir(dir);
+    }
+    else
+    {
+        // adresar nelze otevrit
+
+        perror("");
+    }
+
+    DIR* dir2;
+
+    int i2 = 0, k2;
+
+    struct dirent* ent2;
+
+    dir2 = opendir(path2);
+
+    if (dir2 != NULL)
+    {
+        // tisk vsech souboru a slozek
+
+        while ((ent2 = readdir(dir2)) != NULL)
+        {
+            strcpy(list2[i2], ent2->d_name);
+            i2++;
+
+            // ulozeni souboru do arraye
+        }
+        closedir(dir2);
+    }
+    else
+    {
+        // adresar nelze otevrit
+
+        perror("");
+    }
+
+
+
+
+    WINDOW* w;
+    WINDOW* w2;
+    WINDOW* w3;
+
+    char item[7];
+    char item2[7];
+
+    char listM[6][10] = { "1-CREATE", "2-RENAME", "3-MOVE", "4-COPY", "5-DELETE", "ESC-EXIT" };
+    char itemM[10];
+
+    int ch, width = 7;
+    int ch2, ch3 = 7;
+
+    initscr(); // inicializace ncurses
+
+    w = newwin(22, 40, 0, 1); // nove okno
+    w2 = newwin(22, 40, 0, 41); // nove okno2
+    w3 = newwin(8, 12, 22, 35);
+
+    box(w, 0, 0); // hranice okna
+    box(w2, 0, 0); // hranice okna2
+    box(w3, 0, 0); // hranice okna3
+
+    mvwprintw(w, 0, 1, "%s", path); // vypis cesty 
+    mvwprintw(w2, 0, 1, "%s", path2); // vypis cesty2
+
+    // tisk vsech moznosti a oznaceni prvni moznosti
+
+    for (i = 0; i < 20; i++)
+    {
+        if (i == 0)
+            wattron(w, A_STANDOUT); // oznaceni prvni moznosti
+
+        else
+            wattroff(w, A_STANDOUT);
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w, i + 1, 2, "%s", item);
+    }
+
+    // tisk vsech moznosti a oznaceni prvni moznosti
+
+    for (i2 = 0; i2 < 20; i2++)
+    {
+        if (i2 == 0)
+            wattron(w2, A_STANDOUT); // oznaceni prvni moznosti
+
+        else
+            wattroff(w2, A_STANDOUT);
+        sprintf(item2, "%-7s", list2[i2]);
+        mvwprintw(w2, i2 + 1, 2, "%s", item2);
+    }
+
+    // tisk vsech moznosti a oznaceni prvni moznosti
+
+    for (i = 0; i < 6; i++)
+    {
+        if (i == 0)
+            wattron(w3, A_STANDOUT);
+        else
+            wattroff(w3, A_STANDOUT);
+        sprintf(itemM, "%-7s", listM[i]);
+        mvwprintw(w3, i + 1, 2, "%s", itemM);
+    }
+
+    wrefresh(w); // update obrazu
+    wrefresh(w2); // update obrazu
+    wrefresh(w3); // update obrazu
+
+    i = 0;
+    i2 = 0;
+
+    noecho(); // input se nezobrazuje
+    keypad(w, TRUE); // povoleni inputu
+    keypad(w2, TRUE);
+    keypad(w3, TRUE);
+    curs_set(0); // odstraneni kurzoru
+
+OKNO1:
+    while ((ch = wgetch(w)) != 'q')
+    {
+
+        // nastaveni stejne sirky polozek
+
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w, i + 1, 2, "%s", item);
+
+        // snizeni nebo zvyseni hodnoty podle inputu
+
+        switch (ch)
+        {
+        case'a':
+            endwin();
+            printf("Zadaj cestu : ");
+            scanf("%s", path);
+            system("cls");
+            doupdate();
+            initscr();
+            goto ZACATEK;
+            break;
+        case KEY_UP:
+            i--;
+            i = (i < 0) ? 19 : i;
+            break;
+        case KEY_DOWN:
+            i++;
+            i = (i > 19) ? 0 : i;
+            break;
+        case VK_SPACE:
+            wattron(w, WA_BOLD);
+            selected[i] = 1;
+            break;
+        case VK_TAB:
+            goto OKNO2;
+            break;
+        case  'm':
+            goto OKNO3;
+            break;
+        case '1':
+            create();
+            break;
+        case '2':
+            rename();
+            break;
+        case '3':
+            mov();
+            break;
+        case '4':
+            copy();
+            break;
+        case '5':
+            del();
+            break;
+        case VK_ESCAPE:
+            exit(0);
+            break;
+        case 'r':
+            endwin();
+            system("cls");
+            doupdate();
+            initscr();
+            break;
+        default:
+            break;
+        }
+
+        // oznaceni dalsi moznosti v menu
+
+        wattron(w, A_STANDOUT);
+        sprintf(item, "%-7s", list[i]);
+        mvwprintw(w, i + 1, 2, "%s", item);
+        wattroff(w, A_STANDOUT);
+    }
+
+OKNO2:
+    while ((ch2 = wgetch(w2)) != 'q')
+    {
+
+        // nastaveni stejne sirky polozek
+
+        sprintf(item2, "%-7s", list2[i2]);
+        mvwprintw(w2, i2 + 1, 2, "%s", item2);
+
+        // snizeni nebo zvyseni hodnoty podle inputu
+
+        switch (ch2)
+        {
+        case'a':
+            endwin();
+            printf("Zadaj cestu : ");
+            scanf("%s", path2);
+            system("cls");
+            doupdate();
+            initscr();
+            goto ZACATEK;
+            break;
+        case KEY_UP:
+            i2--;
+            i2 = (i2 < 0) ? 19 : i2;
+            break;
+        case KEY_DOWN:
+            i2++;
+            i2 = (i2 > 19) ? 0 : i2;
+            break;
+        case '\n':
+            break;
+        case VK_SPACE:
+            selected2[i2] = 1;
+            break;
+        case VK_TAB:
+            goto OKNO1;
+            break;
+        case  'm':
+            goto OKNO3;
+            break;
+        case '1':
+            create2();
+            break;
+        case '2':
+            rename2();
+            break;
+        case '3':
+            mov2();
+            break;
+        case '4':
+            copy2();
+            break;
+        case '5':
+            del2();
+            break;
+        case VK_ESCAPE:
+            exit(0);
+            break;
+        case 'r':
+            endwin();
+            system("cls");
+            doupdate();
+            initscr();
+            break;
+        default:
+            break;
+        }
+
+        // oznaceni dalsi moznosti v menu
+
+        wattron(w2, A_STANDOUT);
+        sprintf(item2, "%-7s", list2[i2]);
+        mvwprintw(w2, i2 + 1, 2, "%s", item2);
+        wattroff(w2, A_STANDOUT);
+    }
+
+
+OKNO3:
+    while ((ch3 = wgetch(w3)) != 'q')
+    {
+        sprintf(itemM, "%-10s", listM[i]);
+        mvwprintw(w3, i + 1, 2, "%s", itemM);
+        switch (ch3)
+        {
+        case 'a':
+            goto OKNO1;
+            break;
+        case 'b':
+            goto OKNO2;
+            break;
+        case 'r':
+            endwin();
+            system("cls");
+            doupdate();
+            initscr();
+        case KEY_UP:
+            i--;
+            i = (i < 0) ? 4 : i;
+            break;
+        case KEY_DOWN:
+            i++;
+            i = (i > 5) ? 0 : i;
+            break;
+        case '\n':
+            if (i == 0)
+            {
+                create();
+            }
+            if (i == 1)
+            {
+                rename();
+            }
+            if (i == 2)
+            {
+                mov();
+            }
+            if (i == 3)
+            {
+                copy();
+            }
+            if (i == 4)
+            {
+                del();
+            }
+            if (i == 5)
+            {
+                exit(0);
+            }
+            break;
+        }
+        wattron(w3, A_STANDOUT);
+        sprintf(itemM, "%-10s", listM[i]);
+        mvwprintw(w3, i + 1, 2, "%s", itemM);
+        wattroff(w3, A_STANDOUT);
+    }
+
+
+
+    delwin(w);
+    delwin(w2);
+    delwin(w3);
+    endwin();
+    return 0;
+}
+
+
+
+
+int create() {
+    endwin();
+    printf("Jmeno noveho souboru? : ");
+    scanf("%s", novysoubor);
+    system("cls");
+    doupdate();
+    initscr();
+
+    char command[50], folder[50], jmenosouboru[50];
+
+    strcpy(command, "call>");
+    strcpy(folder, path);
+    strcpy(jmenosouboru, novysoubor);
+
+    strcat(command, folder);
+    strcat(command, jmenosouboru);
+
+    system(command);
+    return 0;
+}
+
+int rename() {
+    endwin();
+    printf("Nove jmeno? : ");
+    scanf("%s", novejmeno);
+    system("cls");
+    doupdate();
+    initscr();
+    for (int i = 0; i < 70; i++)
+    {
+        if (selected[i] == 1)
+        {
+            list[i][70] = list[i + 1][70];
+
+            char command[50], folder[50], selection[50], mezera[10], novejm[50];
+
+            strcpy(command, "ren ");
+            strcpy(folder, path);
+            strcpy(selection, list[i]);
+            strcpy(mezera, " ");
+            strcpy(novejm, novejmeno);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, novejm);
+
+            system(command);
+        }
+    }
+    return 0;
+}
+int mov() {
+    endwin();
+    printf("Kam to bude? : ");
+    scanf("%s", kamtobude);
+    system("cls");
+    doupdate();
+    initscr();
+    for (int i = 0; i < 70; i++)
+    {
+        if (selected[i] == 1)
+        {
+            list[i][70];
+
+            char command[50], folder[50], selection[50], mezera[10], kam[50];
+
+            strcpy(command, "move ");
+            strcpy(folder, path);
+            strcpy(selection, list[i]);
+            strcpy(mezera, " ");
+            strcpy(kam, kamtobude);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, kam);
+
+            system(command);
+        }
+        if (selected[i] == 1)
+        {
+            list[i][70];
+
+            char command[50], folder[50], selection[50], mezera[10], kam[50];
+
+            strcpy(command, "move ");
+            strcpy(folder, path);
+            strcpy(selection, list[i]);
+            strcpy(mezera, " ");
+            strcpy(kam, kamtobude);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, kam);
+
+            system(command);
+        }
+    }
+    return 0;
+}
+int copy() {
+    endwin();
+    printf("Kam to bude? : ");
+    scanf("%s", kamtobude);
+    system("cls");
+    doupdate();
+    initscr();
+    for (int i = 0; i < 70; i++)
+    {
+        if (selected[i] == 1)
+        {
+            list[i][70];
+
+            char command[50], folder[50], selection[50], mezera[10], kam[50];
+
+            strcpy(command, "copy ");
+            strcpy(folder, path);
+            strcpy(selection, list[i]);
+            strcpy(mezera, " ");
+            strcpy(kam, kamtobude);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, kam);
+
+            system(command);
+        }
+        if (selected[i] == 1)
+        {
+            list[i][70];
+
+            char command[50], folder[50], selection[50], mezera[10], kam[50];
+
+            strcpy(command, "copy ");
+            strcpy(folder, path);
+            strcpy(selection, list[i]);
+            strcpy(mezera, " ");
+            strcpy(kam, kamtobude);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, kam);
+
+            system(command);
+        }
+    }
+    return 0;
+}
+int del() {
+    for (int i = 0; i < 70; i++)
+    {
+        if (selected[i] == 1)
+        {
+            list[i][70];
+
+            char command[50], folder[50], selection[50];
+
+            strcpy(command, "del ");
+            strcpy(folder, cesta);
+            strcpy(selection, list[i]);
+
+            strcat(command, folder);
+            strcat(command, selection);
+
+            system(command);
+        }
+        if (selected[i] == 1)
+        {
+            list[i][70];
+
+            char command[50], folder[50], selection[50];
+
+            strcpy(command, "del ");
+            strcpy(folder, cesta);
+            strcpy(selection, list[i]);
+
+            strcat(command, folder);
+            strcat(command, selection);
+
+            system(command);
+        }
+    }
+    return 0;
+}
+
+
+int create2() {
+    endwin();
+    printf("Jmeno noveho souboru? : ");
+    scanf("%s", novysoubor);
+    system("cls");
+    doupdate();
+    initscr();
+
+    char command[50], folder[50], jmenosouboru[50];
+
+    strcpy(command, "call>");
+    strcpy(folder, path2);
+    strcpy(jmenosouboru, novysoubor);
+
+    strcat(command, folder);
+    strcat(command, jmenosouboru);
+
+    system(command);
+    return 0;
+}
+int rename2() {
+    endwin();
+    printf("Nove jmeno? : ");
+    scanf("%s", novejmeno);
+    system("cls");
+    doupdate();
+    initscr();
+    for (int i2 = 0; i2 < 70; i2++)
+    {
+        if (selected2[i2] == 1)
+        {
+            list2[i2][70] = list2[i2 + 1][70];
+
+            char command[50], folder[50], selection[50], mezera[10], novejm[50];
+
+            strcpy(command, "ren ");
+            strcpy(folder, path2);
+            strcpy(selection, list2[i2]);
+            strcpy(mezera, " ");
+            strcpy(novejm, novejmeno);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, novejm);
+
+            system(command);
+        }
+    }
+    return 0;
+}
+int mov2() {
+    endwin();
+    printf("Kam to bude? : ");
+    scanf("%s", kamtobude);
+    system("cls");
+    doupdate();
+    initscr();
+    for (int i2 = 0; i2 < 70; i2++)
+    {
+        if (selected2[i2] == 1)
+        {
+            list2[i2][70];
+
+            char command[50], folder[50], selection[50], mezera[10], kam[50];
+
+            strcpy(command, "move ");
+            strcpy(folder, path2);
+            strcpy(selection, list2[i2]);
+            strcpy(mezera, " ");
+            strcpy(kam, kamtobude);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, kam);
+
+            system(command);
+        }
+        if (selected2[i2] == 1)
+        {
+            list2[i2][70];
+
+            char command[50], folder[50], selection[50], mezera[10], kam[50];
+
+            strcpy(command, "move ");
+            strcpy(folder, path2);
+            strcpy(selection, list2[i2]);
+            strcpy(mezera, " ");
+            strcpy(kam, kamtobude);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, kam);
+
+            system(command);
+        }
+    }
+    return 0;
+}
+int copy2() {
+    endwin();
+    printf("Kam to bude? : ");
+    scanf("%s", kamtobude);
+    system("cls");
+    doupdate();
+    initscr();
+    for (int i2 = 0; i2 < 70; i2++)
+    {
+        if (selected2[i2] == 1)
+        {
+            list2[i2][70];
+
+            char command[50], folder[50], selection[50], mezera[10], kam[50];
+
+            strcpy(command, "copy ");
+            strcpy(folder, path2);
+            strcpy(selection, list2[i2]);
+            strcpy(mezera, " ");
+            strcpy(kam, kamtobude);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, kam);
+
+            system(command);
+        }
+        if (selected2[i2] == 1)
+        {
+            list2[i2][70];
+
+            char command[50], folder[50], selection[50], mezera[10], kam[50];
+
+            strcpy(command, "copy ");
+            strcpy(folder, path2);
+            strcpy(selection, list2[i2]);
+            strcpy(mezera, " ");
+            strcpy(kam, kamtobude);
+
+            strcat(command, folder);
+            strcat(command, selection);
+            strcat(command, mezera);
+            strcat(command, kam);
+
+            system(command);
+        }
+    }
+    return 0;
+}
+int del2() {
+    for (int i2 = 0; i2 < 70; i2++)
+    {
+        if (selected[i2] == 1)
+        {
+            list2[i2][70];
+
+            char command[50], folder[50], selection[50];
+
+            strcpy(command, "del ");
+            strcpy(folder, cesta2);
+            strcpy(selection, list2[i2]);
+
+            strcat(command, folder);
+            strcat(command, selection);
+
+            system(command);
+        }
+        if (selected2[i2] == 1)
+        {
+            list2[i2][70];
+
+            char command[50], folder[50], selection[50];
+
+            strcpy(command, "del ");
+            strcpy(folder, cesta2);
+            strcpy(selection, list2[i2]);
+
+            strcat(command, folder);
+            strcat(command, selection);
+
+            system(command);
+        }
+    }
+    return 0;
+}
